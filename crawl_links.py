@@ -1,17 +1,31 @@
 import requests
 from bs4 import BeautifulSoup
+import os
+import numpy as np
 
 # Define the base URL of the website with pagination
-base_url = 'https://u-taste.com/blogs/recipes?page='
+site_url ='https://u-taste.com'
+base_url = site_url+'/blogs/recipes?page='
+
+# change the current directory to my working dir (OPTIONAL)
+os.chdir('D:\\MYDOCS\\Nlp practice')
 
 # Define the number of pages to crawl
-num_pages = 3  # Change this to the desired number of pages
+num_pages = 22 
 
+# use numpy to remove duplicates
+def unique(list_dup):
+    nplist_dup = np.array(list_dup)
+    nplist_unique = np.unique(nplist_dup)
+    return nplist_unique.tolist()
+
+urls=[]
+link= ""
 # Loop through the specified number of pages
 for page_number in range(1, num_pages + 1):
     # Construct the URL for the current page
     page_url = f'{base_url}{page_number}'
-
+    print(page_url[-2])
     # Send an HTTP GET request to the current page
     response = requests.get(page_url)
 
@@ -27,9 +41,18 @@ for page_number in range(1, num_pages + 1):
         for link in links:
             # Get the href attribute, which contains the URL
             link_url = link.get('href')
-
-            # Check if the link_url is not None and is a valid URL
-            if link_url and link_url.startswith('http'):
-                print(link_url)
+            
+            # Check if the link_url is not a full url and make it a full valid URL
+            if link_url and not link_url.startswith('https'):
+                link = site_url + link_url
+                urls.append(link)
     else:
         print(f'Failed to retrieve page {page_number}. Status code: {response.status_code}')
+
+#REMOVE DUPLICATES    
+url_list=unique(urls)
+
+#write the new list to a file sep by colon
+with open('utasterecipelinks.txt', 'a') as file:
+    for url in url_list:
+        file.write(url+",")
